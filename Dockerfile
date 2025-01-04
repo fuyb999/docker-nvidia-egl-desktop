@@ -77,7 +77,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         gcc \
         git \
         dnsutils \
-        coturn \
         jq \
         python3 \
         python3-numpy \
@@ -295,125 +294,145 @@ RUN cd /tmp && VIRTUALGL_VERSION="$(curl -fsSL "https://api.github.com/repos/Vir
 # Anything below this line should always be kept the same between docker-nvidia-glx-desktop and docker-nvidia-egl-desktop
 
 # Install KDE and other GUI packages
-RUN mkdir -pm755 /etc/apt/preferences.d && echo "Package: firefox*\n\
-Pin: version 1:1snap*\n\
-Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
-    mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x738BEB9321D1AAEC13EA9391AEBDF4819BE21867" | gpg --dearmor -o /etc/apt/trusted.gpg.d/mozillateam-ubuntu-ppa.gpg && \
-    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu $(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/mozillateam-ubuntu-ppa-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
+#RUN mkdir -pm755 /etc/apt/preferences.d && echo "Package: firefox*\n\
+#Pin: version 1:1snap*\n\
+#Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
+#    mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x738BEB9321D1AAEC13EA9391AEBDF4819BE21867" | gpg --dearmor -o /etc/apt/trusted.gpg.d/mozillateam-ubuntu-ppa.gpg && \
+#    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu $(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/mozillateam-ubuntu-ppa-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
+#    apt-get update && apt-get install --no-install-recommends -y \
+#        kde-baseapps \
+#        plasma-desktop \
+#        plasma-workspace \
+#        adwaita-icon-theme-full \
+#        appmenu-gtk3-module \
+#        ark \
+#        aspell \
+#        aspell-en \
+#        breeze \
+#        breeze-cursor-theme \
+#        breeze-gtk-theme \
+#        breeze-icon-theme \
+#        dbus-x11 \
+#        debconf-kde-helper \
+#        desktop-file-utils \
+#        dolphin \
+#        dolphin-plugins \
+#        enchant-2 \
+#        filelight \
+#        frameworkintegration \
+#        gwenview \
+#        haveged \
+#        hunspell \
+#        im-config \
+#        kwrite \
+#        kcalc \
+#        kcharselect \
+#        kdeadmin \
+#        kde-config-fcitx \
+#        kde-config-gtk-style \
+#        kde-config-gtk-style-preview \
+#        kdeconnect \
+#        kdegraphics-thumbnailers \
+#        kde-spectacle \
+#        kdf \
+#        kdialog \
+#        kfind \
+#        kget \
+#        khotkeys \
+#        kimageformat-plugins \
+#        kinfocenter \
+#        kio \
+#        kio-extras \
+#        kmag \
+#        kmenuedit \
+#        kmix \
+#        kmousetool \
+#        kmouth \
+#        ksshaskpass \
+#        ktimer \
+#        kwin-addons \
+#        kwin-x11 \
+#        libdbusmenu-glib4 \
+#        libdbusmenu-gtk3-4 \
+#        libgail-common \
+#        libgdk-pixbuf2.0-bin \
+#        libgtk2.0-bin \
+#        libgtk-3-bin \
+#        libkf5baloowidgets-bin \
+#        libkf5dbusaddons-bin \
+#        libkf5iconthemes-bin \
+#        libkf5kdelibs4support5-bin \
+#        libkf5khtml-bin \
+#        libkf5parts-plugins \
+#        libqt5multimedia5-plugins \
+#        librsvg2-common \
+#        media-player-info \
+#        qapt-deb-installer \
+#        qml-module-org-kde-runnermodel \
+#        qml-module-org-kde-qqc2desktopstyle \
+#        qml-module-qtgraphicaleffects \
+#        qml-module-qt-labs-platform \
+#        qml-module-qtquick-xmllistmodel \
+#        qt5-gtk-platformtheme \
+#        qt5-image-formats-plugins \
+#        qt5-style-plugins \
+#        qtspeech5-flite-plugin \
+#        qtvirtualkeyboard-plugin \
+#        software-properties-qt \
+#        sonnet-plugins \
+#        sweeper \
+#        systemsettings \
+#        ubuntu-drivers-common \
+#        xdg-user-dirs \
+#        xdg-utils \
+#        transmission-qt && \
+#    # Ensure Firefox as the default web browser
+#    # xdg-settings set default-web-browser firefox.desktop && \
+#    # update-alternatives --set x-www-browser /usr/bin/firefox && \
+#    # Install Google Chrome for supported architectures
+#    #if [ "$(dpkg --print-architecture)" = "amd64" ]; then cd /tmp && curl -o google-chrome-stable.deb -fsSL "https://dl.google.com/linux/direct/google-chrome-stable_current_$(dpkg --print-architecture).deb" && apt-get update && apt-get install --no-install-recommends -y ./google-chrome-stable.deb && rm -f google-chrome-stable.deb && sed -i '/^Exec=/ s/$/ --password-store=basic --in-process-gpu/' /usr/share/applications/google-chrome.desktop; fi && \
+#    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \
+#    # Fix KDE startup permissions issues in containers
+#    MULTI_ARCH=$(dpkg --print-architecture | sed -e 's/arm64/aarch64-linux-gnu/' -e 's/armhf/arm-linux-gnueabihf/' -e 's/riscv64/riscv64-linux-gnu/' -e 's/ppc64el/powerpc64le-linux-gnu/' -e 's/s390x/s390x-linux-gnu/' -e 's/i.*86/i386-linux-gnu/' -e 's/amd64/x86_64-linux-gnu/' -e 's/unknown/x86_64-linux-gnu/') && \
+#    cp -f /usr/lib/${MULTI_ARCH}/libexec/kf5/start_kdeinit /tmp/ && \
+#    rm -f /usr/lib/${MULTI_ARCH}/libexec/kf5/start_kdeinit && \
+#    cp -f /tmp/start_kdeinit /usr/lib/${MULTI_ARCH}/libexec/kf5/start_kdeinit && \
+#    rm -f /tmp/start_kdeinit && \
+#    # KDE disable screen lock, double-click to open instead of single-click
+#    echo "[Daemon]\n\
+#Autolock=false\n\
+#LockOnResume=false" > /etc/xdg/kscreenlockerrc && \
+#    echo "[Compositing]\n\
+#Enabled=false" > /etc/xdg/kwinrc && \
+#    echo "[KDE]\n\
+#SingleClick=false\n\
+#\n\
+#[KDE Action Restrictions]\n\
+#action/lock_screen=false\n\
+#logout=false\n\
+#\n\
+#[General]\n\
+#BrowserApplication=firefox.desktop" > /etc/xdg/kdeglobals
+RUN \
     apt-get update && apt-get install --no-install-recommends -y \
-        kde-baseapps \
-        plasma-desktop \
-        plasma-workspace \
-        adwaita-icon-theme-full \
-        appmenu-gtk3-module \
-        ark \
-        aspell \
-        aspell-en \
-        breeze \
-        breeze-cursor-theme \
-        breeze-gtk-theme \
-        breeze-icon-theme \
-        dbus-x11 \
-        debconf-kde-helper \
-        desktop-file-utils \
-        dolphin \
-        dolphin-plugins \
-        enchant-2 \
-        filelight \
-        frameworkintegration \
-        gwenview \
-        haveged \
-        hunspell \
-        im-config \
-        kwrite \
-        kcalc \
-        kcharselect \
-        kdeadmin \
-        kde-config-fcitx \
-        kde-config-gtk-style \
-        kde-config-gtk-style-preview \
-        kdeconnect \
-        kdegraphics-thumbnailers \
-        kde-spectacle \
-        kdf \
-        kdialog \
-        kfind \
-        kget \
-        khotkeys \
-        kimageformat-plugins \
-        kinfocenter \
-        kio \
-        kio-extras \
-        kmag \
-        kmenuedit \
-        kmix \
-        kmousetool \
-        kmouth \
-        ksshaskpass \
-        ktimer \
-        kwin-addons \
-        kwin-x11 \
-        libdbusmenu-glib4 \
-        libdbusmenu-gtk3-4 \
-        libgail-common \
-        libgdk-pixbuf2.0-bin \
-        libgtk2.0-bin \
-        libgtk-3-bin \
-        libkf5baloowidgets-bin \
-        libkf5dbusaddons-bin \
-        libkf5iconthemes-bin \
-        libkf5kdelibs4support5-bin \
-        libkf5khtml-bin \
-        libkf5parts-plugins \
-        libqt5multimedia5-plugins \
-        librsvg2-common \
-        media-player-info \
-        qapt-deb-installer \
-        qml-module-org-kde-runnermodel \
-        qml-module-org-kde-qqc2desktopstyle \
-        qml-module-qtgraphicaleffects \
-        qml-module-qt-labs-platform \
-        qml-module-qtquick-xmllistmodel \
-        qt5-gtk-platformtheme \
-        qt5-image-formats-plugins \
-        qt5-style-plugins \
-        qtspeech5-flite-plugin \
-        qtvirtualkeyboard-plugin \
-        software-properties-qt \
-        sonnet-plugins \
-        sweeper \
-        systemsettings \
-        ubuntu-drivers-common \
-        xdg-user-dirs \
-        xdg-utils \
-        transmission-qt && \
-    # Ensure Firefox as the default web browser
-    # xdg-settings set default-web-browser firefox.desktop && \
-    # update-alternatives --set x-www-browser /usr/bin/firefox && \
-    # Install Google Chrome for supported architectures
-    #if [ "$(dpkg --print-architecture)" = "amd64" ]; then cd /tmp && curl -o google-chrome-stable.deb -fsSL "https://dl.google.com/linux/direct/google-chrome-stable_current_$(dpkg --print-architecture).deb" && apt-get update && apt-get install --no-install-recommends -y ./google-chrome-stable.deb && rm -f google-chrome-stable.deb && sed -i '/^Exec=/ s/$/ --password-store=basic --in-process-gpu/' /usr/share/applications/google-chrome.desktop; fi && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \
-    # Fix KDE startup permissions issues in containers
-    MULTI_ARCH=$(dpkg --print-architecture | sed -e 's/arm64/aarch64-linux-gnu/' -e 's/armhf/arm-linux-gnueabihf/' -e 's/riscv64/riscv64-linux-gnu/' -e 's/ppc64el/powerpc64le-linux-gnu/' -e 's/s390x/s390x-linux-gnu/' -e 's/i.*86/i386-linux-gnu/' -e 's/amd64/x86_64-linux-gnu/' -e 's/unknown/x86_64-linux-gnu/') && \
-    cp -f /usr/lib/${MULTI_ARCH}/libexec/kf5/start_kdeinit /tmp/ && \
-    rm -f /usr/lib/${MULTI_ARCH}/libexec/kf5/start_kdeinit && \
-    cp -f /tmp/start_kdeinit /usr/lib/${MULTI_ARCH}/libexec/kf5/start_kdeinit && \
-    rm -f /tmp/start_kdeinit && \
-    # KDE disable screen lock, double-click to open instead of single-click
-    echo "[Daemon]\n\
-Autolock=false\n\
-LockOnResume=false" > /etc/xdg/kscreenlockerrc && \
-    echo "[Compositing]\n\
-Enabled=false" > /etc/xdg/kwinrc && \
-    echo "[KDE]\n\
-SingleClick=false\n\
-\n\
-[KDE Action Restrictions]\n\
-action/lock_screen=false\n\
-logout=false\n\
-\n\
-[General]\n\
-BrowserApplication=firefox.desktop" > /etc/xdg/kdeglobals
+            dbus-x11 \
+            libdbusmenu-glib4 \
+            libdbusmenu-gtk3-4 \
+            libgail-common \
+            libgdk-pixbuf2.0-bin \
+            libgtk2.0-bin \
+            libgtk-3-bin \
+            libkf5baloowidgets-bin \
+            libkf5dbusaddons-bin \
+            libkf5iconthemes-bin \
+            libkf5kdelibs4support5-bin \
+            libkf5khtml-bin \
+            libkf5parts-plugins \
+            libqt5multimedia5-plugins \
+            librsvg2-common \
+            xdg-user-dirs \
+            xdg-utils
+
 # KDE environment variables
 ENV DESKTOP_SESSION=plasma
 ENV XDG_SESSION_DESKTOP=KDE
@@ -455,62 +474,6 @@ ENV XMODIFIERS="@im=fcitx"
 #    chmod -f 755 /usr/bin/winetricks && \
 #    curl -o /usr/share/bash-completion/completions/winetricks -fsSL "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks.bash-completion"; fi
 
-## Install latest Selkies-GStreamer (https://github.com/selkies-project/selkies-gstreamer) build, Python application, and web application, should be consistent with Selkies-GStreamer documentation
-#ARG PIP_BREAK_SYSTEM_PACKAGES=1
-#RUN apt-get update && apt-get install --no-install-recommends -y \
-#        # GStreamer dependencies
-#        python3-pip \
-#        python3-dev \
-#        python3-gi \
-#        python3-setuptools \
-#        python3-wheel \
-#        libgcrypt20 \
-#        libgirepository-1.0-1 \
-#        glib-networking \
-#        libglib2.0-0 \
-#        libgudev-1.0-0 \
-#        alsa-utils \
-#        jackd2 \
-#        libjack-jackd2-0 \
-#        libpulse0 \
-#        libopus0 \
-#        libvpx-dev \
-#        x264 \
-#        x265 \
-#        libdrm2 \
-#        libegl1 \
-#        libgl1 \
-#        libopengl0 \
-#        libgles1 \
-#        libgles2 \
-#        libglvnd0 \
-#        libglx0 \
-#        wayland-protocols \
-#        libwayland-dev \
-#        libwayland-egl1 \
-#        wmctrl \
-#        xsel \
-#        xdotool \
-#        x11-utils \
-#        x11-xkb-utils \
-#        x11-xserver-utils \
-#        xserver-xorg-core \
-#        libx11-xcb1 \
-#        libxcb-dri3-0 \
-#        libxdamage1 \
-#        libxfixes3 \
-#        libxv1 \
-#        libxtst6 \
-#        libxext6 && \
-#    if [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt libopenh264-dev svt-av1 aom-tools; else apt-get install --no-install-recommends -y mesa-utils-extra; fi && \
-#    # Automatically fetch the latest Selkies-GStreamer version and install the components
-#    SELKIES_VERSION="$(curl -fsSL "https://api.github.com/repos/selkies-project/selkies-gstreamer/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
-#    cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_v${SELKIES_VERSION}_ubuntu$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')_$(dpkg --print-architecture).tar.gz" | tar -xzf - && \
-#    cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && pip3 install --no-cache-dir --force-reinstall "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" "websockets<14.0" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && \
-#    cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web_v${SELKIES_VERSION}.tar.gz" | tar -xzf - && \
-#    cd /tmp && curl -o selkies-js-interposer.deb -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer_v${SELKIES_VERSION}_ubuntu$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')_$(dpkg --print-architecture).deb" && apt-get update && apt-get install --no-install-recommends -y ./selkies-js-interposer.deb && rm -f selkies-js-interposer.deb && \
-#    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
-
 # Install the KasmVNC web interface and RustDesk for fallback
 RUN KASMVNC_VERSION="$(curl -fsSL "https://api.github.com/repos/kasmtech/KasmVNC/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
     cd /tmp && curl -o kasmvncserver.deb -fsSL "https://github.com/kasmtech/KasmVNC/releases/download/v${KASMVNC_VERSION}/kasmvncserver_$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"')_${KASMVNC_VERSION}_$(dpkg --print-architecture).deb" && apt-get update && apt-get install --no-install-recommends -y ./kasmvncserver.deb libdatetime-perl && rm -f kasmvncserver.deb && \
@@ -522,7 +485,66 @@ RUN KASMVNC_VERSION="$(curl -fsSL "https://api.github.com/repos/kasmtech/KasmVNC
 ENV PATH="${PATH:+${PATH}:}/usr/lib/rustdesk"
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}/usr/lib/rustdesk/lib"
 
-# Add custom packages right below this comment, or use FROM in a new container and replace entrypoint.sh or supervisord.conf, and set ENTRYPOINT to /usr/bin/supervisord
+RUN \
+    wget https://launchpadlibrarian.net/747460646/xtradeb-apt-source_0.4_all.deb -O /tmp/xtradeb-apt-source_0.4_all.deb && \
+    dpkg -i /tmp/xtradeb-apt-source_0.4_all.deb && \
+    apt-get install -y openra
+
+## Install latest Selkies-GStreamer (https://github.com/selkies-project/selkies-gstreamer) build, Python application, and web application, should be consistent with Selkies-GStreamer documentation
+#ARG PIP_BREAK_SYSTEM_PACKAGES=1
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        # GStreamer dependencies
+        python3-pip \
+        python3-dev \
+        python3-gi \
+        python3-setuptools \
+        python3-wheel \
+        libgcrypt20 \
+        libgirepository-1.0-1 \
+        glib-networking \
+        libglib2.0-0 \
+        libgudev-1.0-0 \
+        alsa-utils \
+        jackd2 \
+        libjack-jackd2-0 \
+        libpulse0 \
+        libopus0 \
+        libvpx-dev \
+        x264 \
+        x265 \
+        libdrm2 \
+        libegl1 \
+        libgl1 \
+        libopengl0 \
+        libgles1 \
+        libgles2 \
+        libglvnd0 \
+        libglx0 \
+        wayland-protocols \
+        libwayland-dev \
+        libwayland-egl1 \
+        wmctrl \
+        xsel \
+        xdotool \
+        x11-utils \
+        x11-xkb-utils \
+        x11-xserver-utils \
+        xserver-xorg-core \
+        libx11-xcb1 \
+        libxcb-dri3-0 \
+        libxdamage1 \
+        libxfixes3 \
+        libxv1 \
+        libxtst6 \
+        libxext6 && \
+    if [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt libopenh264-dev svt-av1 aom-tools; else apt-get install --no-install-recommends -y mesa-utils-extra; fi && \
+    # Automatically fetch the latest Selkies-GStreamer version and install the components
+    SELKIES_VERSION="$(curl -fsSL "https://api.github.com/repos/selkies-project/selkies-gstreamer/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+    cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_v${SELKIES_VERSION}_ubuntu$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')_$(dpkg --print-architecture).tar.gz" | tar -xzf - && \
+    cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && pip3 install --no-cache-dir --force-reinstall "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" "websockets<14.0" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && \
+    cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web_v${SELKIES_VERSION}.tar.gz" | tar -xzf - && \
+    cd /tmp && curl -o selkies-js-interposer.deb -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer_v${SELKIES_VERSION}_ubuntu$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')_$(dpkg --print-architecture).deb" && apt-get update && apt-get install --no-install-recommends -y ./selkies-js-interposer.deb && rm -f selkies-js-interposer.deb && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 
 # Copy scripts and configurations used to start the container with `--chown=1000:1000`
 COPY --chown=1000:1000 entrypoint.sh /etc/entrypoint.sh
@@ -533,30 +555,6 @@ COPY --chown=1000:1000 kasmvnc-entrypoint.sh /etc/kasmvnc-entrypoint.sh
 RUN chmod -f 755 /etc/kasmvnc-entrypoint.sh
 COPY --chown=1000:1000 supervisord.conf /etc/supervisord.conf
 RUN chmod -f 755 /etc/supervisord.conf
-
-# Configure coTURN script
-RUN echo "#!/bin/bash\n\
-set -e\n\
-turnserver \
-    --verbose \
-    --listening-ip=\"0.0.0.0\" \
-    --listening-ip=\"::\" \
-    --listening-port=\"\${SELKIES_TURN_PORT:-3478}\" \
-    --realm=\"\${TURN_REALM:-example.com}\" \
-    --external-ip=\"\${TURN_EXTERNAL_IP:-\$(dig -4 TXT +short @ns1.google.com o-o.myaddr.l.google.com 2>/dev/null | { read output; if [ -z \"\$output\" ] || echo \"\$output\" | grep -q '^;;'; then exit 1; else echo \"\$(echo \$output | sed 's,\\\",,g')\"; fi } || dig -6 TXT +short @ns1.google.com o-o.myaddr.l.google.com 2>/dev/null | { read output; if [ -z \"\$output\" ] || echo \"\$output\" | grep -q '^;;'; then exit 1; else echo \"[\$(echo \$output | sed 's,\\\",,g')]\"; fi } || hostname -I 2>/dev/null | awk '{print \$1; exit}' || echo '127.0.0.1')}\" \
-    --min-port=\"\${TURN_MIN_PORT:-49152}\" \
-    --max-port=\"\${TURN_MAX_PORT:-65535}\" \
-    --channel-lifetime=\"\${TURN_CHANNEL_LIFETIME:--1}\" \
-    --lt-cred-mech \
-    --user=\"selkies:\${TURN_RANDOM_PASSWORD:-\$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)}\" \
-    --no-cli \
-    --cli-password=\"\${TURN_RANDOM_PASSWORD:-\$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)}\" \
-    --userdb=\"\${XDG_RUNTIME_DIR:-/tmp}/turnserver-turndb\" \
-    --pidfile=\"\${XDG_RUNTIME_DIR:-/tmp}/turnserver.pid\" \
-    --log-file=\"stdout\" \
-    --allow-loopback-peers \
-    \${TURN_EXTRA_ARGS} \$@\
-" > /etc/start-turnserver.sh && chmod -f 755 /etc/start-turnserver.sh
 
 SHELL ["/bin/sh", "-c"]
 

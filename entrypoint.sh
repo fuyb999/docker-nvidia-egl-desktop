@@ -88,7 +88,7 @@ fi
 echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
 
 # Resize the screen to the provided size
-#/usr/local/bin/selkies-gstreamer-resize "${DISPLAY_SIZEW}x${DISPLAY_SIZEH}"
+/usr/local/bin/selkies-gstreamer-resize "${DISPLAY_SIZEW}x${DISPLAY_SIZEH}"
 
 # Use VirtualGL to run the KDE desktop environment with OpenGL if the GPU is available, otherwise use OpenGL with llvmpipe
 export XDG_SESSION_ID="${DISPLAY#*:}"
@@ -102,6 +102,8 @@ fi
 
 # Start Fcitx input method framework
 #/usr/bin/fcitx &
+
+/usr/games/openra-cnc
 
 # Add custom processes right below this line, or within `supervisord.conf` to perform service management similar to systemd
 
