@@ -19,6 +19,7 @@ ENV PASSWD=mypasswd
 RUN sed -i -E 's/(archive|security).ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
 RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-recommends -y \
         apt-utils \
+        dbus-x11 \
         dbus-user-session \
         fakeroot \
         fuse \
@@ -59,10 +60,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         software-properties-common \
         build-essential \
         ca-certificates \
-        alsa-base \
-        alsa-utils \
-        file \
-        gnupg \
         curl \
         wget \
         bzip2 \
@@ -76,14 +73,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         zstd \
         gcc \
         git \
-        dnsutils \
         jq \
-        python3 \
-        python3-numpy \
         vim \
         language-pack-zh-hans \
         fonts-wqy-zenhei \
-        lame \
         less \
         libavcodec-extra \
         libpulse0 \
@@ -104,6 +97,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libvulkan-dev \
         ocl-icd-libopencl1 \
         clinfo \
+        xvfb \
         xkb-data \
         xauth \
         xbitmaps \
@@ -150,67 +144,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         nginx \
         apache2-utils \
         netcat-openbsd && \
-    # Sanitize NGINX path
-    sed -i -e 's/\/var\/log\/nginx\/access\.log/\/dev\/stdout/g' -e 's/\/var\/log\/nginx\/error\.log/\/dev\/stderr/g' -e 's/\/run\/nginx\.pid/\/tmp\/nginx\.pid/g' /etc/nginx/nginx.conf && \
-    echo "error_log /dev/stderr;" >> /etc/nginx/nginx.conf && \
-    # PipeWire and WirePlumber
-    mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xFC43B7352BCC0EC8AF2EEB8B25088A0359807596" | gpg --dearmor -o /etc/apt/trusted.gpg.d/pipewire-debian-ubuntu-pipewire-upstream.gpg && \
-    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/pipewire-upstream/ubuntu $(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-pipewire-upstream-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
-    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/wireplumber-upstream/ubuntu $(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-wireplumber-upstream-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
-    apt-get update && apt-get install --no-install-recommends -y \
-        pipewire \
-        pipewire-alsa \
-        pipewire-audio-client-libraries \
-        pipewire-jack \
-        pipewire-locales \
-        pipewire-v4l2 \
-        pipewire-vulkan \
-        pipewire-libcamera \
-        gstreamer1.0-libcamera \
-        gstreamer1.0-pipewire \
-        libpipewire-0.3-modules \
-        libpipewire-module-x11-bell \
-        libspa-0.2-bluetooth \
-        libspa-0.2-jack \
-        libspa-0.2-modules \
-        wireplumber \
-        wireplumber-locales \
-        gir1.2-wp-0.5 && \
-    # Packages only meant for x86_64
-    if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
-    dpkg --add-architecture i386 && apt-get update && apt-get install --no-install-recommends -y \
-        intel-gpu-tools \
-        nvtop \
-        va-driver-all \
-        i965-va-driver-shaders \
-        intel-media-va-driver-non-free \
-        va-driver-all:i386 \
-        i965-va-driver-shaders:i386 \
-        intel-media-va-driver-non-free:i386 \
-        libva2:i386 \
-        vdpau-driver-all:i386 \
-        mesa-vulkan-drivers:i386 \
-        libvulkan-dev:i386 \
-        libc6:i386 \
-        libxau6:i386 \
-        libxdmcp6:i386 \
-        libxcb1:i386 \
-        libxext6:i386 \
-        libx11-6:i386 \
-        libxv1:i386 \
-        libxtst6:i386 \
-        libdrm2:i386 \
-        libegl1:i386 \
-        libgl1:i386 \
-        libopengl0:i386 \
-        libgles1:i386 \
-        libgles2:i386 \
-        libglvnd0:i386 \
-        libglx0:i386 \
-        libglu1:i386 \
-        libsm6:i386; fi && \
-    # Install nvidia-vaapi-driver, requires the kernel parameter `nvidia_drm.modeset=1` set to run correctly \
-#    NVIDIA_VAAPI_DRIVER_VERSION="$(curl -fsSL "https://api.github.com/repos/elFarto/nvidia-vaapi-driver/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+        # Sanitize NGINX path
+        sed -i -e 's/\/var\/log\/nginx\/access\.log/\/dev\/stdout/g' -e 's/\/var\/log\/nginx\/error\.log/\/dev\/stderr/g' -e 's/\/run\/nginx\.pid/\/tmp\/nginx\.pid/g' /etc/nginx/nginx.conf && \
+        echo "error_log /dev/stderr;" >> /etc/nginx/nginx.conf && \
+         # Install nvidia-vaapi-driver, requires the kernel parameter `nvidia_drm.modeset=1` set to run correctly \
     if [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then \
     apt-get update && apt-get install --no-install-recommends -y \
         meson \
@@ -219,7 +156,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libva-dev \
         libegl-dev \
         libgstreamer-plugins-bad1.0-dev && \
-    NVIDIA_VAAPI_DRIVER_VERSION=0.0.13 && \
+#    NVIDIA_VAAPI_DRIVER_VERSION="$(curl -fsSL "https://api.github.com/repos/elFarto/nvidia-vaapi-driver/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+    NVIDIA_VAAPI_DRIVER_VERSION="0.0.13" && \
     cd /tmp && curl -fsSL "https://github.com/elFarto/nvidia-vaapi-driver/archive/v${NVIDIA_VAAPI_DRIVER_VERSION}.tar.gz" | tar -xzf - && mv -f nvidia-vaapi-driver* nvidia-vaapi-driver && cd nvidia-vaapi-driver && meson setup build && meson install -C build && rm -rf /tmp/*; fi && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \
     echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
@@ -268,13 +206,10 @@ ENV SELKIES_ENCODER=nvh264enc
 ENV SELKIES_ENABLE_RESIZE=false
 ENV SELKIES_ENABLE_BASIC_AUTH=true
 
-# Install Xvfb
-RUN apt-get update && apt-get install --no-install-recommends -y \
-        xvfb && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
-
 # Install VirtualGL and make libraries available for preload
-RUN cd /tmp && VIRTUALGL_VERSION="$(curl -fsSL "https://api.github.com/repos/VirtualGL/virtualgl/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+RUN cd /tmp && \
+#    VIRTUALGL_VERSION="$(curl -fsSL "https://api.github.com/repos/VirtualGL/virtualgl/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+    VIRTUALGL_VERSION="3.1.2" && \
     if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
     dpkg --add-architecture i386 && \
     curl -fsSL -O "https://github.com/VirtualGL/virtualgl/releases/download/${VIRTUALGL_VERSION}/virtualgl_${VIRTUALGL_VERSION}_amd64.deb" && \
@@ -291,195 +226,24 @@ RUN cd /tmp && VIRTUALGL_VERSION="$(curl -fsSL "https://api.github.com/repos/Vir
     chmod -f u+s /usr/lib/libvglfaker.so /usr/lib/libvglfaker-nodl.so /usr/lib/libdlfaker.so /usr/lib/libgefaker.so; fi && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 
-# Anything below this line should always be kept the same between docker-nvidia-glx-desktop and docker-nvidia-egl-desktop
-
-# Install KDE and other GUI packages
-#RUN mkdir -pm755 /etc/apt/preferences.d && echo "Package: firefox*\n\
-#Pin: version 1:1snap*\n\
-#Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
-#    mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x738BEB9321D1AAEC13EA9391AEBDF4819BE21867" | gpg --dearmor -o /etc/apt/trusted.gpg.d/mozillateam-ubuntu-ppa.gpg && \
-#    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu $(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/mozillateam-ubuntu-ppa-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
-#    apt-get update && apt-get install --no-install-recommends -y \
-#        kde-baseapps \
-#        plasma-desktop \
-#        plasma-workspace \
-#        adwaita-icon-theme-full \
-#        appmenu-gtk3-module \
-#        ark \
-#        aspell \
-#        aspell-en \
-#        breeze \
-#        breeze-cursor-theme \
-#        breeze-gtk-theme \
-#        breeze-icon-theme \
-#        dbus-x11 \
-#        debconf-kde-helper \
-#        desktop-file-utils \
-#        dolphin \
-#        dolphin-plugins \
-#        enchant-2 \
-#        filelight \
-#        frameworkintegration \
-#        gwenview \
-#        haveged \
-#        hunspell \
-#        im-config \
-#        kwrite \
-#        kcalc \
-#        kcharselect \
-#        kdeadmin \
-#        kde-config-fcitx \
-#        kde-config-gtk-style \
-#        kde-config-gtk-style-preview \
-#        kdeconnect \
-#        kdegraphics-thumbnailers \
-#        kde-spectacle \
-#        kdf \
-#        kdialog \
-#        kfind \
-#        kget \
-#        khotkeys \
-#        kimageformat-plugins \
-#        kinfocenter \
-#        kio \
-#        kio-extras \
-#        kmag \
-#        kmenuedit \
-#        kmix \
-#        kmousetool \
-#        kmouth \
-#        ksshaskpass \
-#        ktimer \
-#        kwin-addons \
-#        kwin-x11 \
-#        libdbusmenu-glib4 \
-#        libdbusmenu-gtk3-4 \
-#        libgail-common \
-#        libgdk-pixbuf2.0-bin \
-#        libgtk2.0-bin \
-#        libgtk-3-bin \
-#        libkf5baloowidgets-bin \
-#        libkf5dbusaddons-bin \
-#        libkf5iconthemes-bin \
-#        libkf5kdelibs4support5-bin \
-#        libkf5khtml-bin \
-#        libkf5parts-plugins \
-#        libqt5multimedia5-plugins \
-#        librsvg2-common \
-#        media-player-info \
-#        qapt-deb-installer \
-#        qml-module-org-kde-runnermodel \
-#        qml-module-org-kde-qqc2desktopstyle \
-#        qml-module-qtgraphicaleffects \
-#        qml-module-qt-labs-platform \
-#        qml-module-qtquick-xmllistmodel \
-#        qt5-gtk-platformtheme \
-#        qt5-image-formats-plugins \
-#        qt5-style-plugins \
-#        qtspeech5-flite-plugin \
-#        qtvirtualkeyboard-plugin \
-#        software-properties-qt \
-#        sonnet-plugins \
-#        sweeper \
-#        systemsettings \
-#        ubuntu-drivers-common \
-#        xdg-user-dirs \
-#        xdg-utils \
-#        transmission-qt && \
-#    # Ensure Firefox as the default web browser
-#    # xdg-settings set default-web-browser firefox.desktop && \
-#    # update-alternatives --set x-www-browser /usr/bin/firefox && \
-#    # Install Google Chrome for supported architectures
-#    #if [ "$(dpkg --print-architecture)" = "amd64" ]; then cd /tmp && curl -o google-chrome-stable.deb -fsSL "https://dl.google.com/linux/direct/google-chrome-stable_current_$(dpkg --print-architecture).deb" && apt-get update && apt-get install --no-install-recommends -y ./google-chrome-stable.deb && rm -f google-chrome-stable.deb && sed -i '/^Exec=/ s/$/ --password-store=basic --in-process-gpu/' /usr/share/applications/google-chrome.desktop; fi && \
-#    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \
-#    # Fix KDE startup permissions issues in containers
-#    MULTI_ARCH=$(dpkg --print-architecture | sed -e 's/arm64/aarch64-linux-gnu/' -e 's/armhf/arm-linux-gnueabihf/' -e 's/riscv64/riscv64-linux-gnu/' -e 's/ppc64el/powerpc64le-linux-gnu/' -e 's/s390x/s390x-linux-gnu/' -e 's/i.*86/i386-linux-gnu/' -e 's/amd64/x86_64-linux-gnu/' -e 's/unknown/x86_64-linux-gnu/') && \
-#    cp -f /usr/lib/${MULTI_ARCH}/libexec/kf5/start_kdeinit /tmp/ && \
-#    rm -f /usr/lib/${MULTI_ARCH}/libexec/kf5/start_kdeinit && \
-#    cp -f /tmp/start_kdeinit /usr/lib/${MULTI_ARCH}/libexec/kf5/start_kdeinit && \
-#    rm -f /tmp/start_kdeinit && \
-#    # KDE disable screen lock, double-click to open instead of single-click
-#    echo "[Daemon]\n\
-#Autolock=false\n\
-#LockOnResume=false" > /etc/xdg/kscreenlockerrc && \
-#    echo "[Compositing]\n\
-#Enabled=false" > /etc/xdg/kwinrc && \
-#    echo "[KDE]\n\
-#SingleClick=false\n\
-#\n\
-#[KDE Action Restrictions]\n\
-#action/lock_screen=false\n\
-#logout=false\n\
-#\n\
-#[General]\n\
-#BrowserApplication=firefox.desktop" > /etc/xdg/kdeglobals
-RUN \
-    apt-get update && apt-get install --no-install-recommends -y \
-            dbus-x11 \
-            libdbusmenu-glib4 \
-            libdbusmenu-gtk3-4 \
-            libgail-common \
-            libgdk-pixbuf2.0-bin \
-            libgtk2.0-bin \
-            libgtk-3-bin \
-            libkf5baloowidgets-bin \
-            libkf5dbusaddons-bin \
-            libkf5iconthemes-bin \
-            libkf5kdelibs4support5-bin \
-            libkf5khtml-bin \
-            libkf5parts-plugins \
-            libqt5multimedia5-plugins \
-            librsvg2-common \
-            xdg-user-dirs \
-            xdg-utils
-
 # KDE environment variables
-ENV DESKTOP_SESSION=plasma
-ENV XDG_SESSION_DESKTOP=KDE
-ENV XDG_CURRENT_DESKTOP=KDE
 ENV XDG_SESSION_TYPE=x11
-ENV KDE_FULL_SESSION=true
-ENV KDE_SESSION_VERSION=5
-ENV KDE_APPLICATIONS_AS_SCOPE=1
-ENV KWIN_COMPOSE=N
-ENV KWIN_EFFECTS_FORCE_ANIMATIONS=0
-ENV KWIN_EXPLICIT_SYNC=0
-ENV KWIN_X11_NO_SYNC_TO_VBLANK=1
-# Use sudoedit to change protected files instead of using sudo on kwrite
-ENV SUDO_EDITOR=kwrite
-# Enable AppImage execution in containers
-ENV APPIMAGE_EXTRACT_AND_RUN=1
 # Set input to fcitx
 ENV GTK_IM_MODULE=fcitx
 ENV QT_IM_MODULE=fcitx
 ENV XIM=fcitx
 ENV XMODIFIERS="@im=fcitx"
 
-# Wine, Winetricks, and launchers, this process must be consistent with https://wiki.winehq.org/Ubuntu
-#ARG WINE_BRANCH=staging
-#RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
-#    mkdir -pm755 /etc/apt/keyrings && curl -fsSL -o /etc/apt/keyrings/winehq-archive.key "https://dl.winehq.org/wine-builds/winehq.key" && \
-#    curl -fsSL -o "/etc/apt/sources.list.d/winehq-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"').sources" "https://dl.winehq.org/wine-builds/ubuntu/dists/$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"')/winehq-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"').sources" && \
-#    apt-get update && apt-get install --install-recommends -y \
-#        winehq-${WINE_BRANCH} && \
-#    apt-get install --no-install-recommends -y \
-#        q4wine \
-#        playonlinux && \
-#    LUTRIS_VERSION="$(curl -fsSL "https://api.github.com/repos/lutris/lutris/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
-#    cd /tmp && curl -o lutris.deb -fsSL "https://github.com/lutris/lutris/releases/download/v${LUTRIS_VERSION}/lutris_${LUTRIS_VERSION}_all.deb" && apt-get install --no-install-recommends -y ./lutris.deb && rm -f lutris.deb && \
-#    HEROIC_VERSION="$(curl -fsSL "https://api.github.com/repos/Heroic-Games-Launcher/HeroicGamesLauncher/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
-#    cd /tmp && curl -o heroic_launcher.deb -fsSL "https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/download/v${HEROIC_VERSION}/heroic_${HEROIC_VERSION}_$(dpkg --print-architecture).deb" && apt-get install --no-install-recommends -y ./heroic_launcher.deb && rm -f heroic_launcher.deb && \
-#    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \
-#    curl -o /usr/bin/winetricks -fsSL "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks" && \
-#    chmod -f 755 /usr/bin/winetricks && \
-#    curl -o /usr/share/bash-completion/completions/winetricks -fsSL "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks.bash-completion"; fi
-
 # Install the KasmVNC web interface and RustDesk for fallback
-RUN KASMVNC_VERSION="$(curl -fsSL "https://api.github.com/repos/kasmtech/KasmVNC/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
-    cd /tmp && curl -o kasmvncserver.deb -fsSL "https://github.com/kasmtech/KasmVNC/releases/download/v${KASMVNC_VERSION}/kasmvncserver_$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"')_${KASMVNC_VERSION}_$(dpkg --print-architecture).deb" && apt-get update && apt-get install --no-install-recommends -y ./kasmvncserver.deb libdatetime-perl && rm -f kasmvncserver.deb && \
-    RUSTDESK_VERSION="$(curl -fsSL "https://api.github.com/repos/rustdesk/rustdesk/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+RUN cd /tmp && \
+   # KASMVNC_VERSION="$(curl -fsSL "https://api.github.com/repos/kasmtech/KasmVNC/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+    KASMVNC_VERSION="1.3.3" && \
+    curl -o kasmvncserver.deb -fsSL "https://github.com/kasmtech/KasmVNC/releases/download/v${KASMVNC_VERSION}/kasmvncserver_$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"')_${KASMVNC_VERSION}_$(dpkg --print-architecture).deb" && apt-get update && apt-get install --no-install-recommends -y ./kasmvncserver.deb libdatetime-perl && rm -f kasmvncserver.deb && \
+#    RUSTDESK_VERSION="$(curl -fsSL "https://api.github.com/repos/rustdesk/rustdesk/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+    RUSTDESK_VERSION="1.3.6" && \
     cd /tmp && curl -o rustdesk.deb -fsSL "https://github.com/rustdesk/rustdesk/releases/download/${RUSTDESK_VERSION}/rustdesk-${RUSTDESK_VERSION}-$(uname -m).deb" && apt-get update && apt-get install --no-install-recommends -y ./rustdesk.deb && rm -f rustdesk.deb && \
-    YQ_VERSION="$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+#    YQ_VERSION="$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+    YQ_VERSION="4.44.6" && \
     cd /tmp && curl -o yq -fsSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_$(dpkg --print-architecture)" && install ./yq /usr/bin/ && rm -f yq && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 ENV PATH="${PATH:+${PATH}:}/usr/lib/rustdesk"
