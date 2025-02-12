@@ -103,7 +103,8 @@ fi
 # Start Fcitx input method framework
 #/usr/bin/fcitx &
 
-/usr/games/openra-cnc
+#/usr/games/openra-cnc
+/opt/apps/WindTerm_2.6.1/WindTerm
 
 # Add custom processes right below this line, or within `supervisord.conf` to perform service management similar to systemd
 
