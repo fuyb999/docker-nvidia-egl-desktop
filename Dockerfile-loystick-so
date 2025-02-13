@@ -1,0 +1,4 @@
+FROM nvidia-egl-desktop:v0.0.1
+
+COPY landlords /usr/games/landlords
+ADD selkies_joystick_interposer.so /usr/lib/x86_64-linux-gnu/
