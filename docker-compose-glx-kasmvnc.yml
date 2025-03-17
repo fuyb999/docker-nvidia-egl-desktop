@@ -1,0 +1,46 @@
+services:
+  glx:
+    build:
+      context: .
+    container_name: glx
+    hostname: glx
+    # Change tag `latest` to Ubuntu versions such as `24.04`, use a persistent tag such as `24.04-20210101010101` to persist a certain container version
+#    image: ghcr.io/selkies-project/nvidia-egl-desktop:latest
+    image: fuyb/nvidia-glx-desktop:latest
+    ports:
+    - '8081:8080'
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [gpu]
+    tmpfs:
+    - '/dev/shm:rw'
+#    volumes:
+#    - 'egl-cache-vol:/cache'
+#    - 'egl-root-vol:/home/ubuntu'
+    # Uncomment the below line to disable network isolation for WebRTC connectivity, display `:20` and `:21` should not be used in the host, may show an error if disallowed by the cluster
+#    network_mode: 'host'
+    environment:
+    - TZ=UTC
+    - DISPLAY_SIZEW=1920
+    - DISPLAY_SIZEH=1080
+    - DISPLAY_REFRESH=60
+    - DISPLAY_DPI=96
+    - DISPLAY_CDEPTH=24
+    # Keep to default unless you know what you are doing with VirtualGL, `VGL_DISPLAY` should be set to either `egl[n]` or `/dev/dri/card[n]` only when the device was passed to the container
+#    - VGL_DISPLAY=egl
+    # User password of container (ubuntu/${PASSWD})
+    - PASSWD=work2022
+    # Uncomment to enable KasmVNC instead of Selkies-GStreamer, `SELKIES_BASIC_AUTH_PASSWORD` is used for authentication with KasmVNC, defaulting to `PASSWD` if not provided
+    # Uses: `SELKIES_ENABLE_BASIC_AUTH`, `SELKIES_BASIC_AUTH_USER`, `SELKIES_BASIC_AUTH_PASSWORD`, `SELKIES_ENABLE_RESIZE`, `SELKIES_ENABLE_HTTPS`, `SELKIES_HTTPS_CERT`, `SELKIES_HTTPS_KEY`
+    - KASMVNC_ENABLE=true
+    - SELKIES_ENABLE_HTTPS=true
+    # Number of threads for encoding frames with KasmVNC, default value is all threads
+#    - name: KASMVNC_THREADS=0
+    volumes:
+      - /work/container-apps:/opt/apps
