@@ -413,4 +413,35 @@ export QT_DEBUG_PLUGINS=1
 ### run in server
 ```shell
 xx --server Server.Name="OpenXX server" Server.ListenPort=1234
+
 ```
+
+### fix install steam
+```shell
+
+find /usr -name "*polkit*"
+chmod 4755 /usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1
+
+```
+
+### nvidia drivers
+```shell
+# 检查主机是否存在nvidia_drv.so
+ls /usr/lib/xorg/modules/drivers/ | grep nvidia_drv.so
+# 如不存在，在ubuntu 22.04.5（先通过apt安装535驱动，会自带gcc-12编译，系统默认为11.4）
+sudo apt install nvidia-driver-535
+# 然后官网下载对应版本的二进制包安装nvidia_drv.so
+wget https://us.download.nvidia.cn/XFree86/Linux-x86_64/535.183.01/NVIDIA-Linux-x86_64-535.183.01.run
+sudo bash NVIDIA-Linux-x86_64-535.183.01.run -x
+cd NVIDIA-Linux-x86_64-535.183.01
+sudo ./nvidia-installer --silent \
+                      --no-kernel-module \
+                      --install-compat32-libs \
+                      --no-nouveau-check \
+                      --no-nvidia-modprobe \
+                      --no-systemd \
+                      --no-rpms \
+                      --no-backup \
+                      --no-check-for-alternate-installs
+```
+

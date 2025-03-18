@@ -3,9 +3,11 @@ services:
     container_name: egl
     hostname: egl
     # Change tag `latest` to Ubuntu versions such as `24.04`, use a persistent tag such as `24.04-20210101010101` to persist a certain container version
-    image: ghcr.io/selkies-project/nvidia-egl-desktop:22.04-20241222100454
-    ports:
-      - '8080:8080'
+    #    image: ghcr.io/selkies-project/nvidia-egl-desktop:22.04-20241222100454
+    image: egl:v0.0.2
+    privileged: true
+#    ports:
+#      - '8080:8080'
     # Internal TURN server settings
     #    - '3478:3478'
     #    - '65534-65535:65534-65535'
@@ -31,6 +33,7 @@ services:
       - /usr/bin/nvidia-xconfig:/usr/bin/nvidia-xconfig
       - /usr/lib/xorg/modules/drivers/nvidia_drv.so:/usr/lib/xorg/modules/drivers/nvidia_drv.so
       - /usr/lib/xorg/modules/extensions:/usr/lib/xorg/modules/extensions
+      - /data/apps/egl:/data/egl
     environment:
       - TZ=UTC
       - DISPLAY_SIZEW=1920
