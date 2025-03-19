@@ -101,7 +101,7 @@ else
 fi
 
 # Start Fcitx input method framework
-/usr/bin/fcitx &
+/usr/bin/fcitx5 &
 
 # Add custom processes right below this line, or within `supervisord.conf` to perform service management similar to systemd
 
