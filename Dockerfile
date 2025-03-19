@@ -5,7 +5,7 @@
 # Supported base images: Ubuntu 24.04, 22.04, 20.04
 ARG DISTRIB_IMAGE=ubuntu
 ARG DISTRIB_RELEASE=22.04
-FROM ${DISTRIB_IMAGE}:${DISTRIB_RELEASE}
+FROM jlesage/baseimage:ubuntu-22.04-v3.6.5
 ARG DISTRIB_IMAGE
 ARG DISTRIB_RELEASE
 
@@ -34,12 +34,12 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
     # Only use sudo-root for root-owned directory (/dev, /proc, /sys) or user/group permission operations, not for apt-get installation or file/directory operations
     mv -f /usr/bin/sudo /usr/bin/sudo-root && \
     ln -snf /usr/bin/fakeroot /usr/bin/sudo && \
-    groupadd -g 1000 ubuntu || echo 'Failed to add ubuntu group' && \
-    useradd -ms /bin/bash ubuntu -u 1000 -g 1000 || echo 'Failed to add ubuntu user' && \
-    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,games,input,lp,plugdev,render,ssl-cert,sudo,tape,tty,video,voice ubuntu && \
-    echo "ubuntu ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    echo "ubuntu:${PASSWD}" | chpasswd && \
-    chown -R -f -h --no-preserve-root ubuntu:ubuntu / || echo 'Failed to set filesystem ownership in some paths to ubuntu user' && \
+    groupadd -g 1000 develop || echo 'Failed to add develop group' && \
+    useradd -ms /bin/bash develop -u 1000 -g 1000 || echo 'Failed to add develop user' && \
+    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,games,input,lp,plugdev,render,ssl-cert,sudo,tape,tty,video,voice develop && \
+    echo "develop ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    echo "develop:${PASSWD}" | chpasswd && \
+    chown -R -f -h --no-preserve-root develop:develop / || echo 'Failed to set filesystem ownership in some paths to develop user' && \
     # Preserve setuid/setgid removed by chown
     chmod -f 4755 /usr/lib/dbus-1.0/dbus-daemon-launch-helper /usr/bin/chfn /usr/bin/chsh /usr/bin/mount /usr/bin/gpasswd /usr/bin/passwd /usr/bin/newgrp /usr/bin/umount /usr/bin/su /usr/bin/sudo-root /usr/bin/fusermount || echo 'Failed to set chmod setuid for some paths' && \
     chmod -f 2755 /var/local /var/mail /usr/sbin/unix_chkpwd /usr/sbin/pam_extrausers_chkpwd /usr/bin/expiry /usr/bin/chage || echo 'Failed to set chmod setgid for some paths'
@@ -346,8 +346,6 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         dolphin \
         dolphin-plugins \
         enchant-2 \
-        fcitx5 \
-        fcitx5-chinese-addons \
         filelight \
         frameworkintegration \
         gwenview \
@@ -358,7 +356,9 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         kcalc \
         kcharselect \
         kdeadmin \
-        kde-config-fcitx \
+        fcitx5 \
+        fcitx5-chinese-addons \
+        kde-config-fcitx5 \
         kde-config-gtk-style \
         kde-config-gtk-style-preview \
         kdeconnect \
@@ -423,22 +423,10 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         sweeper \
         systemsettings \
         ubuntu-drivers-common \
-        vlc \
-        vlc-plugin-access-extra \
-        vlc-plugin-notify \
-        vlc-plugin-samba \
-        vlc-plugin-skins2 \
-        vlc-plugin-video-splitter \
-        vlc-plugin-visualization \
         xdg-user-dirs \
         xdg-utils \
         firefox \
         transmission-qt && \
-    apt-get install --install-recommends -y \
-        libreoffice \
-        libreoffice-kf5 \
-        libreoffice-plasma \
-        libreoffice-style-breeze && \
     # Ensure Firefox as the default web browser
     xdg-settings set default-web-browser firefox.desktop && \
     update-alternatives --set x-www-browser /usr/bin/firefox && \
@@ -487,7 +475,7 @@ ENV APPIMAGE_EXTRACT_AND_RUN=1
 # Set input to fcitx
 ENV GTK_IM_MODULE=fcitx5
 ENV QT_IM_MODULE=fcitx5
-ENV XIM=fcitx5
+#ENV XIM=fcitx5
 ENV XMODIFIERS="@im=fcitx5"
 
 # Wine, Winetricks, and launchers, this process must be consistent with https://wiki.winehq.org/Ubuntu
@@ -564,6 +552,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     SELKIES_VERSION="1.6.2" && \
     cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_v${SELKIES_VERSION}_ubuntu$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')_$(dpkg --print-architecture).tar.gz" | tar -xzf - && \
     cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && pip3 install --no-cache-dir --force-reinstall "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && \
+    pip install websockets==10.4 && \
     cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web_v${SELKIES_VERSION}.tar.gz" | tar -xzf - && \
     cd /tmp && curl -o selkies-js-interposer.deb -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer_v${SELKIES_VERSION}_ubuntu$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')_$(dpkg --print-architecture).deb" && apt-get update && apt-get install --no-install-recommends -y ./selkies-js-interposer.deb && rm -f selkies-js-interposer.deb && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
@@ -590,8 +579,6 @@ RUN chmod -f 755 /etc/selkies-gstreamer-entrypoint.sh
 # RUN chmod -f 755 /etc/kasmvnc-entrypoint.sh
 COPY --chown=1000:1000 supervisord.conf /etc/supervisord.conf
 RUN chmod -f 755 /etc/supervisord.conf
-
-RUN  pip install websockets==10.4
 
 # Configure coTURN script
 RUN echo "#!/bin/bash\n\
@@ -620,10 +607,15 @@ turnserver \
 SHELL ["/bin/sh", "-c"]
 
 USER 0
+
+COPY rootfs /
+COPY startapp.sh /startapp.sh
+RUN chmod +x /startapp.sh
+
 # Enable sudo through sudo-root with uid 0
 RUN if [ -d "/usr/libexec/sudo" ]; then SUDO_LIB="/usr/libexec/sudo"; else SUDO_LIB="/usr/lib/sudo"; fi && \
     chown -R -f -h --no-preserve-root root:root /usr/bin/sudo-root /etc/sudo.conf /etc/sudoers /etc/sudoers.d /etc/sudo_logsrvd.conf "${SUDO_LIB}" || echo 'Failed to provide root permissions in some paths relevant to sudo' && \
-    chmod -f 4755 /usr/bin/sudo-root || echo 'Failed to set chmod setuid for root'
+    chmod -f 4755 /usr/bin/sudo-root || echo 'Failed to set chmod setuid for root' \
 USER 1000
 
 ENV PIPEWIRE_LATENCY="128/48000"
@@ -637,10 +629,12 @@ ENV DBUS_SYSTEM_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR:-/tmp}/dbus-system-bus"
 
 USER 1000
 ENV SHELL=/bin/bash
-ENV USER=ubuntu
-ENV HOME=/home/ubuntu
-WORKDIR /home/ubuntu
+ENV USER=develop
+ENV HOME=/home/develop
+WORKDIR /home/develop
+
+USER 0
 
 EXPOSE 8080
 
-ENTRYPOINT ["/usr/bin/supervisord"]
+#ENTRYPOINT ["/usr/bin/supervisord"]

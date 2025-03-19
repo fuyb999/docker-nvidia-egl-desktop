@@ -11,8 +11,6 @@ services:
     privileged: true
     ports:
       - '8080:8080'
-      - '8081:8081'
-      - '8082:8082'
     # Internal TURN server settings
     #    - '3478:3478'
     #    - '65534-65535:65534-65535'
@@ -56,7 +54,7 @@ services:
       # Number of threads for encoding frames with KasmVNC, default value is all threads
       #    - name: KASMVNC_THREADS=0
 #      - DISPLAY=:22
-      - NGINX_PORT=8082
+#      - NGINX_PORT=8082
       ###
       # Selkies-GStreamer parameters, for additional configurations see `selkies-gstreamer --help`
       ###
