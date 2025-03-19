@@ -82,13 +82,13 @@ if [ -z "$(ldconfig -N -v $(sed 's/:/ /g' <<< $LD_LIBRARY_PATH) 2>/dev/null | gr
 fi
 
 # Run Xvfb server with required extensions
-/usr/bin/Xvfb "${DISPLAY}" -screen 0 "${DISPLAY_SIZEW}x${DISPLAY_SIZEH}x${DISPLAY_CDEPTH}" -dpi "${DISPLAY_DPI}" +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -ac -noreset -shmem &
+/usr/bin/Xvfb "${DISPLAY}" -screen 0 "8192x4096x${DISPLAY_CDEPTH}" -dpi "${DISPLAY_DPI}" +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -ac -noreset -shmem &
 
 # Wait for X server to start
 echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
 
 # Resize the screen to the provided size
-#/usr/local/bin/selkies-gstreamer-resize "${DISPLAY_SIZEW}x${DISPLAY_SIZEH}"
+/usr/local/bin/selkies-gstreamer-resize "${DISPLAY_SIZEW}x${DISPLAY_SIZEH}"
 
 # Use VirtualGL to run the KDE desktop environment with OpenGL if the GPU is available, otherwise use OpenGL with llvmpipe
 export XDG_SESSION_ID="${DISPLAY#*:}"
@@ -101,10 +101,7 @@ else
 fi
 
 # Start Fcitx input method framework
-#/usr/bin/fcitx &
-
-#/usr/games/openra-cnc
-/opt/apps/WindTerm_2.6.1/WindTerm
+/usr/bin/fcitx &
 
 # Add custom processes right below this line, or within `supervisord.conf` to perform service management similar to systemd
 
