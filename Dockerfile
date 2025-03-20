@@ -619,7 +619,7 @@ RUN if [ -d "/usr/libexec/sudo" ]; then SUDO_LIB="/usr/libexec/sudo"; else SUDO_
 USER 1000
 
 ENV PIPEWIRE_LATENCY="128/48000"
-ENV XDG_RUNTIME_DIR=/tmp/runtime-ubuntu
+ENV XDG_RUNTIME_DIR=/tmp/run/user/develop
 ENV PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
 ENV PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
 ENV PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
