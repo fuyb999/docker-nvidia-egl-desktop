@@ -358,6 +358,9 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         kdeadmin \
         fcitx5 \
         fcitx5-chinese-addons \
+        fcitx5-frontend-gtk2 \
+        fcitx5-frontend-gtk3 \
+        fcitx5-frontend-qt5 \
         kde-config-fcitx5 \
         kde-config-gtk-style \
         kde-config-gtk-style-preview \

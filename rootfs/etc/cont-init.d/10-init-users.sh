@@ -131,6 +131,18 @@ add_group --allow-duplicate develop "$GROUP_ID"
 add_user --allow-duplicate develop "$USER_ID" "$GROUP_ID"
 add_user_to_group develop develop
 
+add_group turnserver 1001
+add_user turnserver 1001 1001
+
+add_group crontab 1002
+add_user crontab 1002 1002
+
+add_group ssl-cert 1003
+add_user ssl-cert 1003 1003
+
+add_group messagebus 1004
+add_user messagebus 1004 1004
+
 # Handle supplementary groups of user 'develop'.
 echo ${SUP_GROUP_IDS:-},${SUP_GROUP_IDS_INTERNAL:-} | tr ',' '\n' | grep -v '^$' | grep -v '^0$' | grep -vw "$GROUP_ID" | sort -nub | while read GID
 do
@@ -153,17 +165,5 @@ chmod 644 /etc/passwd
 chmod 644 /etc/group
 chown root:shadow /etc/shadow
 chmod 644 /etc/shadow
-
-add_group turnserver 1001
-add_user turnserver 1001 1001
-
-add_group crontab 1002
-add_user crontab 1002 1002
-
-add_group ssl-cert 1003
-add_user ssl-cert 1003 1003
-
-add_group messagebus 1004
-add_user messagebus 1004 1004
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
