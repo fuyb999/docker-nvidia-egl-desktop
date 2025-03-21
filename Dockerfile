@@ -2,10 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+# syntax=docker/dockerfile:1.3-labs
+
 # Supported base images: Ubuntu 24.04, 22.04, 20.04
 ARG DISTRIB_IMAGE=ubuntu
 ARG DISTRIB_RELEASE=22.04
-FROM jlesage/baseimage:ubuntu-22.04-v3.6.5
+FROM ubuntu:22.04
 ARG DISTRIB_IMAGE
 ARG DISTRIB_RELEASE
 
@@ -13,7 +15,7 @@ LABEL maintainer="https://github.com/ehfd,https://github.com/danisla"
 
 ARG DEBIAN_FRONTEND=noninteractive
 # Configure rootless user environment for constrained conditions without escalated root privileges inside containers
-ARG TZ=Asia/Shanghai
+ENV TZ=Asia/Shanghai
 ENV PASSWD=mypasswd
 
 RUN sed -i -E 's/(archive|security).ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
