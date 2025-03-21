@@ -609,6 +609,12 @@ turnserver \
 
 SHELL ["/bin/sh", "-c"]
 
+USER 1000
+ENV SHELL=/bin/bash
+ENV USER=develop
+ENV HOME=/home/develop
+WORKDIR /home/develop
+
 USER 0
 
 COPY rootfs /
@@ -619,6 +625,7 @@ RUN chmod +x /startapp.sh
 RUN if [ -d "/usr/libexec/sudo" ]; then SUDO_LIB="/usr/libexec/sudo"; else SUDO_LIB="/usr/lib/sudo"; fi && \
     chown -R -f -h --no-preserve-root root:root /usr/bin/sudo-root /etc/sudo.conf /etc/sudoers /etc/sudoers.d /etc/sudo_logsrvd.conf "${SUDO_LIB}" || echo 'Failed to provide root permissions in some paths relevant to sudo' && \
     chmod -f 4755 /usr/bin/sudo-root || echo 'Failed to set chmod setuid for root' \
+
 USER 1000
 
 ENV PIPEWIRE_LATENCY="128/48000"
@@ -629,12 +636,6 @@ ENV PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-
 
 # dbus-daemon to the below address is required during startup
 ENV DBUS_SYSTEM_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR:-/tmp}/dbus-system-bus"
-
-USER 1000
-ENV SHELL=/bin/bash
-ENV USER=develop
-ENV HOME=/home/develop
-WORKDIR /home/develop
 
 USER 0
 
