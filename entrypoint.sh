@@ -100,9 +100,6 @@ else
   /usr/bin/dbus-launch --exit-with-session /usr/bin/startplasma-x11 &
 fi
 
-# Start Fcitx input method framework
-#/usr/bin/fcitx5 &
-
 # Add custom processes right below this line, or within `supervisord.conf` to perform service management similar to systemd
 
 echo "Session Running. Press [Return] to exit."
